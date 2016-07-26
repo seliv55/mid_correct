@@ -1,4 +1,6 @@
-
+#source("lib.R")
+#source("midcor.R")
+#correct("GluC2C4b","var")
 correct<-function(fname,mdcor="con"){
   md<-substr(mdcor,1,2);
 # read experimental data
@@ -39,8 +41,8 @@ correct<-function(fname,mdcor="con"){
      fr<-mdistr(nfrg,tmp,mmlab,nln);}
 # statistics in row data     
   lst=stat(tmp,nln,nfrg); gcmsn2=lst[[1]]; gcmsn2$V2=NULL; 
- write("\n*** Summed injections for each plate corrected for peaks overlap, statistics **",fn1,append=TRUE)
-  write.table(format(gcmsn2,digits=4),fn1,quote=FALSE,append=TRUE,col.names=FALSE, row.names = F);
+# write("\n*** Summed injections, statistics for raw data corrected for peaks overlap **",fn1,append=TRUE)
+#  write.table(format(gcmsn2,digits=4),fn1,quote=FALSE,append=TRUE,col.names=FALSE, row.names = F);
 #     statistics in final distribution of 13C isotopomers
 lst=stat(fr,nln,nfrg); fr=lst[[1]]; nln=lst[[2]]; len=length(fr)-1;
 # write data:

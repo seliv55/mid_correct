@@ -1,7 +1,7 @@
 # mid_correct
 R-program for a correction of peak overlapping in raw GCMS data
 
-﻿“midcor.R” is an “R”-program performs a primary analysis of isotopic isomers (isotopomers) distribution obtained by Gas Cromatography coupled with Mass Spectrometry (GCMS). The aim of this analysis is to have a correct distribution of artificially introduced isotopes. To this end the program performs a correction for natural occurring isotopes and also correction for “impurities” of the assay media that give peaks overlapping with the those produced by the artificially introduced label.
+﻿“midcor.R” is an “R”-program that performs a primary analysis of raw m/z (mass/charge) spectra obtained by Gas Cromatography coupled with Mass Spectrometry (GCMS) with the aim to decipher a correct distribution of only artificially introduced isotopes into the individual metabolites/fragments (without the contribution of natural occurring isotopes and overlapping with other metabolites/fragments). To this end the program performs a correction for natural occurring isotopes and also correction for “impurities” of the assay media that give peaks overlapping with the those produced by the artificially introduced label.
 
 This program offers two ways of corrections of “impurities” resulted from overlapping the assayed mass isotopomer distribution with peaks produced either by unknown metabolites in the media, or by different fragments produced by the assayed metabolite.
 
@@ -13,13 +13,14 @@ How to work with the program.
 ???@???:~/R$ R
 
 3. Read the R-script:
+> source("lib.R")
 > source("midcor.R")
 
 4. Read a particular input file with data designed for analysis and analyze them using the functions available in Midcor:
-> correct("filename")
-
+> correct("filename","opt")
+        
 Here "filename" is the name of the input file contaiming raw GCMS data
-The input data is a file with raw mas/charge (m/z) distribution provided directly by a GCMS machine. An example of input data file is shown below. Comments are included between * *, they should not be present in a real input file.
+The input data is a file with raw mas/charge (m/z) distribution provided directly by a GCMS machine. An example of input data file is shown below. Comments are included between * *, they should not be present in a real input file. The files "GluC2C4b" and "GluC2C5" provide the examples. "opt" could be either "constant" (or shortening of this word) when the difference D between theoretical and experimental mass distribution does not depend on the metabolite labeling, or "variable" (or shortening of this word) when D depends on the labeling.
 
 * content of an input file is below *
 
@@ -58,35 +59,16 @@ finR24_02.D            	1381	101072	41633	33811	22779	53581	17014
 * end of an input file *
 
 
-The function “correct” reads the user provided GCMS data file, normalizes the input GCMS data, so that the sum of m/z values equals to 1, corrects the obtained distribution for the presence of naturally occurring isotopes, and, for the case of commercial unlabeled sample, calculates the difference between the corrected distribution and expected one. Then it uses the obtained difference to ultimately correct for impurity the samples containing metabolites of living cells in the presence of labeled substrates.
+The function “correct” reads the user provided GCMS data file, normalizes the input GCMS data, so that the sum of m/z values equals to 1, corrects the obtained distribution for the presence of naturally occurring isotopes, and saves the obtained corrected distributions, calculated for each line separately, in the output file, which name is the name of input file with “_c” added at the end. This part of analysis is saved under the title:
+ "*** MID for each injection, corrected only for natural 13C, 29,30Si, 33,34S ***"
+ 
+ Then it sums the corresponding intensities in the injections referred to the same biological sample, performs the above described operations with respect to such sums, and shows the results under the title:
+ *** Summed injections for each plate, corrected only for natural 13C, 29,30Si, 33,34S **
 
-The results of such corrections are saved into the output file, which name is the name of input file with “_c” added at the end.
-
-Below an example of output data file is shown. First it prints normalized data corrected for natural isotope occurrence calculated for each row of the input file (last column shows the sum of all m/z fractions given in a corresponding row):
-
-1 R29_01.D 0.9601  0.009513 0.009890 0.020228  2.902e-04 0 1 
-
-2 R29_02.D 0.9664  0.010092 0.007329 0.014540  1.663e-03 0 1 
-
-3 R29_03.D 0.9672  0.010683 0.006033 0.015567  5.453e-04 0 1 
-
-4 B29_01.D 0.9630  0.008246 0.008875 0.019958 -9.602e-05 0 1 
-
-5 B29_02.D 0.9663  0.012697 0.007689 0.013101  1.716e-04 0 1 
-
-6 B29_03.D 0.9740  0.006081 0.005272 0.013777  8.850e-04 0 1 
-
-7 B10n8_01.D 0.6161  0.020621 0.064714 0.067461  2.311e-01 0 1 
-
-Then it prints the data corrected for impurities after grouping together the counts for various injections referred to the same sample,  and mean and standard deviation, calculated for the injections referred to the same samples:
-
-R29_01.D 	1.000000  4.903e-14  8.902e-15  4.065e-14 -3.297e-14
-
-B29_01.D 	1.004161 -1.229e-03 -7.621e-04 -1.751e-03 -4.178e-04
-
-**mean** 	1.000000  0.000e+00  0.000e+00  0.000e+00  0.000e+00
-
-**sd** 		0.002942  8.692e-04  5.389e-04  1.238e-03  2.954e-04
+Then it calculates the difference D between the corrected distribution and theoretically expected one for the reference unlabeled sample, and  uses the obtained difference to ultimately correct for impurity the samples containing metabolites of living cells in the presence of labeled substrates, finds the means and standard deviation values betweem biological samples referred to the same conditions, and shows the results under the titles:
+*** Statistics, samples fully corrected **
+and
+*** Correction factor: **
 
 Examples of input data can be found in the files “GluC2C4b”, “GluC2C5” and the corresponding output data are in the files “GluC2C4b_c”, “GluC2C5_c”.
 
