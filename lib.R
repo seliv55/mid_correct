@@ -109,6 +109,7 @@ remsd<-function(mid,lbl){ numl=nrow(mid);
         }
     return(mid)
 }
+
 chirow<-function(dfr,draw,nmi,dlfrg,dteor){     len=length(draw);
         mid=numeric(nmi); tmp<-draw;
          for(j in 1:(dlfrg+1)) mid=mid+dfr[1,j+1]*dteor[j,];
@@ -122,34 +123,49 @@ alchi<-function(dfr,draw,nmi,dlfrg,dteor){     tmp<-draw; numl=nrow(draw);
     return(tmp)
 }
 
-chandis<-function(mdis,ic,fac){
-  mdis[ic]=fac*mdis[ic];  len=length(mdis); suma=0;
-    for(i in 2:len) suma=suma+mdis[i];
-    for(i in 2:len) mdis[i]=mdis[i]/suma;  
+chandis<-function(mdis,pvar,pfix,fac){
+   len=length(mdis); suma=0;
+    for(i in 2:len) if(i!=pfix) suma=suma+mdis[i];
+     pnew=fac*mdis[pvar]; delta=mdis[pvar]-pnew
+  mdis[pvar]=pnew;   sumb=suma-delta
+    for(i in 2:len) if(i!=pfix) mdis[i]=mdis[i]*suma/sumb;
    return(mdis)
 }
 
-ci99<-function(mid,rada,nadi,nfra,fac,nmass,nfrg,chi){
+ci99<-function(mid,rada,nadi,pvar,fac,nmass,nfrg,chi){
       len=length(rada)
-     while(chi<6.63){ if(mid[nfra]>0.999){break}; if(mid[nfra]<0.001){break}
-     mid=chandis(mid,nfra,fac);
+     while(chi<6.63){ if(mid[pvar]>0.99){break}; if(mid[pvar]<0.001){break}
+#     for(i in 1:5){ if(mid[pvar]>0.99){break}; if(mid[pvar]<0.001){break}
+     mid=chandis(mid,pvar,99,fac);
      tmp=chirow(mid,rada,nmass,nfrg,nadi); chi=tmp[len]
-     cat("\n chi: ",as.character(format(tmp,digits=4)),"\n")
-     cat(" mid: ",as.character(format(mid,digits=4)),"\n")
-     }
+    }
        return(list(mid,chi))
 }
 
-ch2par<-function(mid,pinc,pdec,inc,rada,nadi,nmass,nfrg,chi0){
-  cat("\n pink=",pinc," pdec=",pdec)
-     chi=chi0; len=length(rada); mid0=mid
-     while(chi<(chi0+0.00001)){mid0=mid; chi0=chi;
-      if(mid[pinc]>0.99){break}; if(mid[pdec]<0.005){break}
-     mid[pinc]=mid[pinc]+inc; mid[pdec]=mid[pdec]-inc;
-     tmp=chirow(mid,rada,nmass,nfrg,nadi); chi=tmp[len];
-     cat("\n chi: ",as.character(format(tmp,digits=4)),"\n")
-     cat(" mid: ",as.character(format(mid,digits=4)),"\n")
+dechi<-function(mid0,pvar,pfix,fac,rada,nadi,nmass,nfrg,chi0){
+     chi=chi0; len=length(rada); mid=mid0
+     for(i in 1:2){      if((mid[pvar]>0.99)|(mid[pvar]<0.005)) {break}
+      mid=chandis(mid,pvar,pfix,fac)
+      tmp=chirow(mid,rada,nmass,nfrg,nadi); chi=tmp[len];
+        if(chi>chi0) {fac=1./fac}
+         else { mid0=mid; chi0=chi;}
      }
        return(list(mid0,chi0))
+}
+
+halfci<-function(mid,rada,fac,fac1,mmlab,nmass,nfrg, ncyc){
+     chi=0; len=length(mid); nma=which(mid==max(mid[2:len]));
+     for(i in 1:ncyc){
+   lst=ci99(mid,rada,mmlab,nma,fac,nmass,nfrg,chi); mid=lst[[1]]; chi=lst[[2]]
+   for(j in 2:(nfrg+2)) if(j!=nma){lst=dechi(mid,j,nma,fac1,rada,mmlab,nmass,nfrg,chi); mid=lst[[1]]; chi=lst[[2]]}
+     }
+     return(lst)
+}
+confin<-function(mid0,rada,fac,fac1,mmlab,nmass,nfrg, ncyc,fn1){
+  lst=halfci(mid0,rada,fac,fac1,mmlab,nmass,nfrg,11)
+     cat(" mid: ",as.character(format(lst[[1]],digits=4))," chi=",as.character(lst[[2]]),"\n",file=fn1,append=TRUE)
+    fac=1/fac;
+  lst=halfci(mid0,rada,fac,fac1,mmlab,nmass,nfrg,11)
+     cat(" mid: ",as.character(format(lst[[1]],digits=4))," chi=",as.character(lst[[2]]),"\n",file=fn1,append=TRUE)
 }
 

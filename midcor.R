@@ -1,7 +1,7 @@
 #source("lib.R")
 #source("midcor.R")
 #correct("GluC2C4b","var")
-correct<-function(fname,mdcor="con"){
+correct<-function(fname,mdcor="con"){        #fname="GluC2C4b";mdcor="var"
   md<-substr(mdcor,1,2);
 # read experimental data
  fn<-file.path(fname);
@@ -55,22 +55,12 @@ lst=stat(fr,nln,nfrg); fr=lst[[1]]; nln=lst[[2]]; len=length(fr)-1;
    frmod=remsd(fr,"**sd**")
    gcmsn2=remsd(gcmsn2,"**sd**")
      gcms=alchi(frmod,gcmsn2,nmass,nfrg,mmlab);
- write("\n*** chi: **",fn1,append=TRUE)
-     write.table(format(gcms,digits=4),fn1,quote=FALSE,append=TRUE,col.names=FALSE, row.names = F);
-     mid=frmod[2,]; chi=0; nma=which(mid==max(mid[2:len])); fac=0.98;
-     rada=gcmsn2[2,]
-     for(i in 1:3){
-   lst=ci99(mid,rada,mmlab,nma,fac,nmass,nfrg,chi); mid=lst[[1]]; chi=lst[[2]]
-   lst=ch2par(mid,4,2,0.001,rada,mmlab,nmass,nfrg,chi); mid=lst[[1]]; chi=lst[[2]]
-   lst=ch2par(mid,6,4,0.001,rada,mmlab,nmass,nfrg,chi); mid=lst[[1]]; chi=lst[[2]]
-   lst=ch2par(mid,6,2,0.001,rada,mmlab,nmass,nfrg,chi); mid=lst[[1]]; chi=lst[[2]]
-   lst=ch2par(mid,6,5,0.001,rada,mmlab,nmass,nfrg,chi); mid=lst[[1]]; chi=lst[[2]]
-   lst=ch2par(mid,4,5,0.001,rada,mmlab,nmass,nfrg,chi); mid=lst[[1]]; chi=lst[[2]]
-   lst=ch2par(mid,5,2,0.001,rada,mmlab,nmass,nfrg,chi); mid=lst[[1]]; chi=lst[[2]]
-     }
-     razn=mid; razn[2:len]=mid[2:len]-frmod[2,2:len];
-     cat(" diff: ",as.character(format(razn,digits=4)),"\n")
+# write("\n*** chi: **",fn1,append=TRUE)
+#     write.table(format(gcms,digits=4),fn1,quote=FALSE,append=TRUE,col.names=FALSE, row.names = F);
+ write("\n*** 99% CI: **",fn1,append=TRUE)
      
-     cat("\n diff: ",as.character(format(razn,digits=4)),"\n",file=fn1,append=TRUE)
-     cat(" mid: ",as.character(format(mid,digits=4)),"\n",file=fn1,append=TRUE)
+     mid=frmod[2,];  fac=0.98; fac1=0.9;     rada=gcmsn2[2,]
+  confin(mid,rada,fac,fac1,mmlab,nmass,nfrg,11,fn1)
+     mid=frmod[3,];  rada=gcmsn2[3,]
+  confin(mid,rada,fac,fac1,mmlab,nmass,nfrg,11,fn1)
 }
