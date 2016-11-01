@@ -1,34 +1,85 @@
-# mid_correct
-R-program for a correction of peak overlapping in raw GCMS data
+![Logo](text4217.png)
 
-﻿“midcor.R” is an “R”-program that performs a primary analysis of raw m/z (mass/charge) spectra obtained by Gas Cromatography coupled with Mass Spectrometry (GCMS) with the aim to decipher a correct distribution of only artificially introduced isotopes into the individual metabolites/fragments (without the contribution of natural occurring isotopes and overlapping with other metabolites/fragments). To this end the program performs a correction for natural occurring isotopes and also correction for “impurities” of the assay media that give peaks overlapping with the those produced by the artificially introduced label.
+# MIDcor
+Version: 1.0
+## Short Description
+
+“R”-program that corrects 13C mass isotopomers spectra of metabolites for natural occurring isotopes and peaks overlapping
+
+## Description
+
+MIDcor is an “R”-program that performs a primary analysis of isotopic isomers (isotopomers) distribution obtained by Gas Cromatography coupled with Mass Spectrometry (GCMS). The aim of this analysis is to have a correct distribution of isotopes originated from substrates that are artificially enriched with specific isotopes (usually 13C). To this end the program performs a correction for natural occurring isotopes and also correction for “impurities” of the assay media that give peaks overlapping with the spectra of analyzed labeled metabolites. This program offers two ways of corrections of “impurities” resulted from overlapping the assayed mass isotopomer distribution with peaks produced either by unknown metabolites in the media, or by different fragments produced by the assayed metabolite. 
 
 This program offers two ways of corrections of “impurities” resulted from overlapping the assayed mass isotopomer distribution with peaks produced either by unknown metabolites in the media, or by different fragments produced by the assayed metabolite.
 
-How to work with the program.
+## Key features
 
-1. Open terminal, change directory to the working directory containing the file with the R-program (“midcor.R”) and files with input data.
+- primary processing of 13C mass isotopomer data obtained with GCMS
 
-2. Enter into the R shell:
-???@???:~/R$ R
+## Functionality
 
-3. Read the R-script:
-> source("lib.R")
-> source("midcor.R")
+- Preprocessing
+- Statistical Analysis
+- Workflows
 
-4. Read a particular input file with data designed for analysis and analyze them using the functions available in Midcor:
-> correct("filename","opt")
+## Approaches
+
+- Isotopic Labelling Analysis / 13C
+    
+## Instrument Data Types
+
+- MS
+
+## Data Analysis
+
+- correction for H+ loss produced by electron impact, natural occurring isotopes, peaks overlapping that depends on isotopic composition of metabolites
+
+## Tool Authors
+
+- Vitaly Selivanov (Universitat de Barcelona)
+
+## Container Contributors
+
+- [Pablo Moreno](EBI)
+
+## Website
+
+- N/A
+
+## Git Repository
+
+- https://github.com/seliv55/mid_correct
+
+## Installation
+
+-  As independent program. MIDcor itself does not require installation. Standing in the MIDcor directory enter in R environment with the command:
+  
+'''  R '''
+  
+ read the necessary functions:
+  
+''' source("lib.R")
+  
+source("midcor.R")'''
+  
+  
+## Usage Instructions
+
+1. Read a particular input file with data designed for analysis and analyze them using the functions available in Midcor:
+> correct("filename")
         
 Here "filename" is the name of the input file contaiming raw GCMS data
-The input data is a file with raw mas/charge (m/z) distribution provided directly by a GCMS machine. An example of input data file is shown below. Comments are included between * *, they should not be present in a real input file. The files "GluC2C4b" and "GluC2C5" provide the examples. "opt" could be either "constant" (or shortening of this word) when the difference D between theoretical and experimental mass distribution does not depend on the metabolite labeling, or "variable" (or shortening of this word) when D depends on the labeling.
+The input data is a file with raw mas/charge (m/z) distribution provided directly by a GCMS machine. An example of input data file is shown below. Comments are included between * *, they should not be present in a real input file. The files "GluC2C4b" and "GluC2C5" provide the examples. 
 
-* content of an input file is below *
+*below is an example of an input file *
 
 carbons_total 18            * Total number of carbons in the derivated fragment *
 
 fragment 4                     *<number of carbons in the assayed metabolite (or its fragment) >*
 
-silicio 3                         *<Total number of Si atoms in the derivated fragment>*
+silicium 3                       *<Total number of Si atoms in the derivated fragment>*
+
+sulfur   0                       *<Total number of S atoms in the derivated fragment.>*
 
 m/z                  	417	418	419	420	421	422	423 
 
@@ -71,4 +122,10 @@ and
 *** Correction factor: **
 
 Examples of input data can be found in the files “GluC2C4b”, “GluC2C5” and the corresponding output data are in the files “GluC2C4b_c”, “GluC2C5_c”.
+
+
+
+## Publications
+- “MIDcor”, an R-program for deciphering mass interferences in mass spectra of metabolites enriched in stable isotopes. Submitted to BMC bioinformatics.
+
 

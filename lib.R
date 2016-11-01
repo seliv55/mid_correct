@@ -75,10 +75,10 @@ mdistr<-function(nreal,msd,mm,nln){ #label incorporation
 #     for(i in 2:(colon-2)) fr[i]<- fr[i]/fr[colon];
       fr }
 
-stat<-function(dfr,nln,nfrg){            i<-1; lfr<-length(dfr);
+stat<-function(dfr,nln,nfrg,first,last){            i<-1; lfr<-length(dfr);
   dfr1=data.frame();
-  while(i<nln){ cnlab<-substr(as.character(dfr[i,1]),4,9); k<-i;
-    while(substr(as.character(dfr[k+1,1]),4,9)==cnlab) k<-k+1; 
+  while(i<nln){ cnlab<-substr(as.character(dfr[i,1]),first,last); k<-i;
+    while(substr(as.character(dfr[k+1,1]),first,last)==cnlab) k<-k+1; 
       if(k>i) {sredn<-dfr[i,];
                  for(j in 2:lfr) sredn[j]<-mean(dfr[i:k,j]);
                  for(j in 2:lfr) if(sredn[j]<0.) sredn[j]<-0.;
@@ -93,9 +93,9 @@ stat<-function(dfr,nln,nfrg){            i<-1; lfr<-length(dfr);
           return(list(dfr1,nln))
 } 
 
-suminj<-function(dfr,nln,colon){         i<-1;
-  while(i<nln-1){ cnlab<-substr(as.character(dfr[i,1]),1,3); 
-    while(substr(as.character(dfr[i+1,1]),1,3)==cnlab) {
+suminj<-function(dfr,nln,colon,first,last){         i<-1;
+  while(i<nln-1){ cnlab<-substr(as.character(dfr[i,1]),first,last); 
+    while(substr(as.character(dfr[i+1,1]),first,last)==cnlab) {
       dfr[i,2:colon]<-dfr[i,2:colon]+dfr[i+1,2:colon];
         dfr<-dfr[-(i+1),]; nln<-nln-1;}
              i<-i+1;}

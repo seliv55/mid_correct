@@ -1,8 +1,32 @@
 #source("lib.R")
 #source("midcor.R")
 #correct("GluC2C4b","var")
-correct<-function(fname,mdcor="con"){        #fname="GluC2C4b";mdcor="var"
-  md<-substr(mdcor,1,2);
+case2<-function(tmp,mmlab,corr,ff,fr,nfrg){ nln=nrow(tmp); nmass=ncol(tmp)-2
+    for(j in 1:nln) { k=1; for(i in 1:(nmass+1-k)) tmp[j,i+1+k]<-tmp[j,i+1+k]-corr[i]*(fr[j,1+k]);
+               for(k in 2:(nfrg+1)) for(i in 1:(nmass+1-k)) tmp[j,i+1+k]<-tmp[j,i+1+k]-corr[i]*(fr[j,1+k])*ff;#
+    }
+      fr<-mdistr(nfrg,tmp,mmlab,nln); return(fr)
+}
+
+corrm<-function(tmp,mmlab,corr,ff,fr,nfrg){ nln=nrow(tmp); nmass=ncol(tmp)-2;
+     k=1; for(i in 1:(nmass+1-k)) tmp[i+1+k]<-tmp[i+1+k]-corr[i]*(fr[1+k]);
+   for(k in 2:(nfrg+1)) for(i in 1:(nmass+1-k)) tmp[i+1+k]<-tmp[i+1+k]-corr[i]*(fr[1+k])*ff;#
+       return(mdistr(nfrg,tmp,mmlab,1))
+}
+
+fitf<-function(tmp,mmlab,corr,ff,fr,nfrg){ nln=nrow(tmp); nmass=ncol(tmp)-2;
+  dpred=numeric(nfrg); dpred[2]=1.; xisq=0.; modf=1.01; ff1=ff
+    fr<-corrm(tmp,mmlab,corr,ff,fr,nfrg);   xisq0=sum((fr[2:(1+nfrg)]-dpred)**2)
+   iw=0;   while(iw<2){ ff1=ff1*modf; print(paste("iw=",iw))
+    fr<-corrm(tmp,mmlab,corr,ff,fr,nfrg);   xisq=sum((fr[2:(1+nfrg)]-dpred)**2)
+                if(xisq<xisq0) {ff=ff1; }
+                 else {modf=1./modf;  iw=iw+1}
+      }
+      
+       return(list(ff,xisq,fr))
+}
+
+correct<-function(fname){        #fname="GluC2C4b";mdcor="var"
 # read experimental data
  fn<-file.path(fname);
   info<-read.table(fn, nrows=4);  nC<-info$V2[1]; nfrg<-info$V2[2]; nSi<-info$V2[3]; nS<-info$V2[4];
@@ -19,7 +43,7 @@ correct<-function(fname,mdcor="con"){        #fname="GluC2C4b";mdcor="var"
  write("*** MID for each injection, corrected only for natural 13C, 29,30Si, 33,34S ***",fn1)
   write.table(format(fr,digits=4),fn1,quote=FALSE,append=TRUE,col.names=FALSE, row.names = F);
 # Sum the data for various injections from the same plate:
-  lst=suminj(gcms,nln,coln); gcms=lst[[1]]; nln=lst[[2]];
+  lst=suminj(gcms,nln,coln,1,3); gcms=lst[[1]]; nln=lst[[2]];
 # normalization
          gcmsn<-norm(gcms,ef);
 # mass fractions
@@ -27,24 +51,26 @@ correct<-function(fname,mdcor="con"){        #fname="GluC2C4b";mdcor="var"
  write("\n*** Summed injections for each plate, corrected only for natural 13C, 29,30Si, 33,34S **",fn1,append=TRUE)
   write.table(format(fr,digits=4),fn1,quote=FALSE,append=TRUE,col.names=FALSE, row.names = F);
 # correction
-           corr<-numeric(nmass);
-       corr<-gcmsn[1,3:(2+nmass)]-mmlab[1,];
-  if(md=="va") { for(ii in 1:9) {tmp<-gcmsn;  
-#    for(j in 1:1)  for(k in 1:(nfrg+1))  for(i in 1:(nmass+1-k)) tmp[j,i+1+k]<-tmp[j,i+1+k]-corr[i]*(fr[j,1+k]);
-    for(j in 1:nln) { k=1; for(i in 1:(nmass+1-k)) tmp[j,i+1+k]<-tmp[j,i+1+k]-corr[i]*(fr[j,1+k]);
-               k=2; for(i in 1:(nmass+1-k)) tmp[j,i+1+k]<-tmp[j,i+1+k]-corr[i]*(fr[j,1+k])*0.573;#
-               k=3; for(i in 1:(nmass+1-k)) tmp[j,i+1+k]<-tmp[j,i+1+k]-corr[i]*(fr[j,1+k])*0.;#
-               for(k in 4:(nfrg+1)) for(i in 1:(nmass+1-k)) tmp[j,i+1+k]<-tmp[j,i+1+k]-corr[i]*(fr[j,1+k])*0.62;#
-    }
-      fr<-mdistr(nfrg,tmp,mmlab,nln);
+           corr<-numeric(nmass); corr1=numeric(nmass); icomm=0;
+           patt=grep('comm',fr[,1]);
+      if(length(patt)>0) corr<-gcmsn[patt[1],3:(2+nmass)]-mmlab[1,]; print(corr)
+           patt=grep('natur',fr[,1]);
+      if(length(patt)>0) corr1<-gcmsn[patt[1],3:(2+nmass)]-mmlab[1,];
+           patt=grep('fitf',fr[,1]); abc=fr[patt[1],]; ff=1.
+      if(length(patt)>0) {ff=0.63; abc=fitf(tmp=gcmsn[patt[1],],mmlab,corr,ff,abc,nfrg); print(abc)}
+       mdmax=max(corr1-corr);print(paste("max=",mdmax," ff=",ff))
+       if((mdmax<0.005)&&(mdmax > -0.005)) md="va"
+        else md="co";
+  if(md=="va") { for(ii in 1:9) {tmp<-gcmsn;
+      fr<-case2(gcmsn,mmlab,corr,ff,fr,nfrg);
         }}  else {tmp<-gcmsn; for(j in 1:nln)  tmp[j,3:(2+nmass)]<-tmp[j,3:(2+nmass)]-corr;
      fr<-mdistr(nfrg,tmp,mmlab,nln);}
 # statistics in row data     
-  lst=stat(tmp,nln,nfrg); gcmsn2=lst[[1]]; gcmsn2$V2=NULL; 
+  lst=stat(tmp,nln,nfrg,4,9); gcmsn2=lst[[1]]; gcmsn2$V2=NULL; 
 # write("\n*** Summed injections, statistics for raw data corrected for peaks overlap **",fn1,append=TRUE)
 #  write.table(format(gcmsn2,digits=4),fn1,quote=FALSE,append=TRUE,col.names=FALSE, row.names = F);
 #     statistics in final distribution of 13C isotopomers
-lst=stat(fr,nln,nfrg); fr=lst[[1]]; nln=lst[[2]]; len=length(fr)-1;
+lst=stat(fr,nln,nfrg,4,9); fr=lst[[1]]; nln=lst[[2]]; len=length(fr)-1;
 # write data:
        razn<-gcmsn[1,];  razn[1]<-as.factor("correction"); for(i in 1:nmass) razn[i+1]<-corr[i];
        fr<-fr[1:len]
